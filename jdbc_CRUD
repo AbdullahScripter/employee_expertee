@@ -1,0 +1,356 @@
+package jdbc;
+import java.sql.*;
+
+
+          // CRUD OPREATION 
+public class jdbcdemo {
+
+	public static void main(String[] args) throws SQLException 
+	{	
+	
+		batchprocessingcommit();
+
+	}
+	
+	//read
+	public static void readrecord() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		String query="select *from employee";
+		
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		Statement st= con.createStatement();
+		ResultSet rs=st.executeQuery(query);
+		
+		while(rs.next()) 
+		{
+		System.out.println("ID is " +rs.getInt(1));
+		System.out.println("NAME is " +rs.getString(2));
+		System.out.println("SALARY is " +rs.getInt(3));
+		}
+		
+		
+		con.close();
+	}
+	
+	//insert
+	// 1 . values hard coded- 4,kamal,75000
+	
+	public static void insertrecord() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		String query="insert into employee values(4,'kamal',75000)";
+		
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		Statement st= con.createStatement();
+		int rows=st.executeUpdate(query);
+		
+		System.out.println("number of rows affectes " + rows);
+		con.close();
+	}
+	
+	//insert
+	//2. insert using variable
+	public static void insertvar() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		int id=5;
+		String name="safir";
+		int salary=80000;
+		
+		//insert into employee values(5,'safir',80000)
+		String query="insert into employee values(" +id + ",'" + name + "'," + salary + ");";
+		
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		Statement st= con.createStatement();
+		int rows=st.executeUpdate(query);
+		
+		System.out.println("number of rows affectes " + rows);
+		con.close();
+	}
+	
+	//insert
+	//3.insert using preparedstatement
+	public static void insertusingpst() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		int id=6;
+		String name="suhail";
+		int salary=85000;
+		
+		//insert into employee values(5,'sunail',80000)
+		String query="insert into employee values(?,?,?);";
+		
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		PreparedStatement pst =con.prepareStatement(query);
+		pst.setInt(1, id);
+		pst.setString(2, name);
+		pst.setInt(3, salary);
+		//not want to pass the query in the parameter
+		int rows =pst.executeUpdate();
+		System.out.println("number of rows affectes " + rows);
+		con.close();
+	}
+	
+	//delete
+	public static void delete() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		int id=6;
+		
+		
+		
+		String query="delete from employee where emp_id = " +id;
+		
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		Statement st =con.createStatement();
+		int rows =st.executeUpdate(query);
+		
+		System.out.println("number of rows affectes " + rows);
+		con.close();
+	}
+	
+	//update
+	//hardcoded
+	public static void update() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		
+		
+		
+	
+		String query="update employee set salary=10000 where emp_id=1";
+		
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		Statement st =con.createStatement();
+		int rows =st.executeUpdate(query);
+		
+		System.out.println("number of rows affectes " + rows);
+		con.close();
+	}
+	
+	
+	
+	//types of statement  :
+	//* normal statement
+	//* prepared statement
+	//* collable statement --> used to call stored procedure
+	
+	//calling simple stored procedure (read entire table)
+	public static void storeprocedure1() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		CallableStatement cst =con.prepareCall("{call GetEmp()}");
+		ResultSet rs =cst.executeQuery();
+		
+		while(rs.next()) 
+		{
+		System.out.println("ID is " +rs.getInt(1));
+		System.out.println("NAME is " +rs.getString(2));
+		System.out.println("SALARY is " +rs.getInt(3));
+		}
+		
+		con.close();
+	}
+	
+	//store procedure with input parameter (read one record)
+	public static void storeprocedure2() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		int id=3;
+		Connection con=DriverManager.getConnection(url,username,password);
+		CallableStatement cst =con.prepareCall("{call GetEmpById(?)}");
+		cst.setInt(1,id );
+		ResultSet rs =cst.executeQuery();
+		
+		//loop not mandatory for this ..but if it there it is not problem
+		while(rs.next()) 
+		{
+		System.out.println("ID is " +rs.getInt(1));
+		System.out.println("NAME is " +rs.getString(2));
+		System.out.println("SALARY is " +rs.getInt(3));
+		}
+		
+		con.close();
+	}
+	
+	//calling stored procedure with in and not parameter (give id and return empname)
+	public static void storeprocedure3() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		int id=3;
+		Connection con=DriverManager.getConnection(url,username,password);
+		CallableStatement cst =con.prepareCall("{call GetNameById(?,?)}");
+		cst.setInt(1,id );
+		cst.registerOutParameter(2, Types.VARCHAR);
+		
+		 cst.executeUpdate();
+		 
+		 System.out.println(cst.getString(2));
+		
+		
+		
+		con.close();
+	}
+	
+	//commit vs autocommit 
+	
+	// autocommit -it will commit aitomatically in to database (change emp salary from 1 and 2 )
+	//quer1 doesnt contain spelling mistake so it will commit 
+	//but query2 contain spelling mistake .so it wont commit 
+	public static void autocommitdemo() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		String query1 ="update employee set salary=400000 where emp_id=1";
+		String query2 ="updat employee set salary=400000 where emp_id=2";
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		Statement st= con.createStatement();
+		
+		int rows1 =st.executeUpdate(query1);
+		System.out.println("number of rows affectes " + rows1);
+		
+
+		int rows2 =st.executeUpdate(query2);
+		
+		System.out.println("number of rows affectes " + rows2);
+		con.close();
+	
+	}
+	
+	//commit-> rendu query yume correct na matum tha atha commit panum
+	//ithula query1 correct and condition satisfied 
+	//but query2 vanthu query wrong query wrong na salary >0 va iruntalum condition satisfird ahathu
+	//so finally first query um secind query um commit ahathu
+	public static void commitdemo() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		String query1 ="update employee set salary=550000 where emp_id=1";
+		//mistake in update
+		String query2 ="updat employee set salary=550000 where emp_id=2";
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		con.setAutoCommit(false);
+		Statement st= con.createStatement();
+		
+		int rows1 =st.executeUpdate(query1);
+		System.out.println("number of rows affectes " + rows1);
+		
+
+		int rows2 =st.executeUpdate(query2);
+		System.out.println("number of rows affectes " + rows2);
+		
+		if(rows1>0 && rows2>0)
+			con.commit();
+		con.close();
+	
+	}
+	
+	//batch processing-ithu la 4 query irku ,4 query kum individual lah exceutequery nu kuduka vendam.
+	//atha elatiyum batch la set panitu .antha referrnce ku mothama exceute query kudutha pothum elame exceute airum 
+	//autocommit 
+	public static void batchprocessingautocommit() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		String query1 ="update employee set salary=250000 where emp_id=1";
+		String query2 ="update employee set salary=250000 where emp_id=2";
+		String query3 ="update employee set salary=250000 where emp_id=3";
+		String query4 ="update employee set salary=250000 where emp_id=4";
+		//mistake in update
+		String query5 ="updat employee set salary=250000 where emp_id=5";
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		
+		Statement st= con.createStatement();
+		//ithan batch .
+		st.addBatch(query1);
+		st.addBatch(query2);
+		st.addBatch(query3);
+		st.addBatch(query4);
+		st.addBatch(query5);
+		
+		int [] res=st.executeBatch();
+		
+		for(int i :res)
+		
+			System.out.println("rows affected" +i);
+			
+		con.close();
+	
+	}
+	
+	//batch processing
+	//commmit  --if all true then only it will commmit 
+	public static void batchprocessingcommit() throws SQLException
+	{
+		String url="jdbc:mysql://localhost:3306/jdbcdemo";
+		String username="root";
+		String password="3333";
+		
+		String query1 ="update employee set salary=330000 where emp_id=1";
+		String query2 ="update employee set salary=330000 where emp_id=2";
+		String query3 ="update employee set salary=330000 where emp_id=3";
+		String query4 ="update employee set salary=330000 where emp_id=4";
+		//mistake in update
+		String query5 ="updat employee set salary=330000 where emp_id=5";
+		
+		Connection con=DriverManager.getConnection(url,username,password);
+		con.setAutoCommit(false);
+		Statement st= con.createStatement();
+		//ithan batch .
+		st.addBatch(query1);
+		st.addBatch(query2);
+		st.addBatch(query3);
+		st.addBatch(query4);
+		st.addBatch(query5);
+		
+		int [] res=st.executeBatch();
+		
+		for(int i :res)
+		
+			if (i>0)
+				con.commit();
+		
+		con.close();
+	
